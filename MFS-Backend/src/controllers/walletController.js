@@ -47,9 +47,11 @@ async function initiateSend(req, res, next) {
 
     await validateSufficientBalance(user.mfsAddress, amount);
 
+    if (!user.email) return res.status(400).json({ error: 'Email is required for OTP verification. Please update your profile.' });
+
     await createAndSendOtp({
       userId: user.id,
-      recipient: user.email || user.phone,
+      recipient: user.email,
       purpose: 'verify',
     });
 
