@@ -29,7 +29,7 @@ async function getWalletBalance(req, res, next) {
     const balance = await getBalance(user.mfsAddress);
     const ethBalance = await getEthBalance(user.mfsAddress);
     const balanceDecimal = parseFloat(balance).toFixed(8);
-    const ethBalanceDecimal = parseFloat(ethBalance).toFixed(4);
+    const ethBalanceDecimal = parseFloat(ethBalance).toFixed(8);
     res.json({ address: user.mfsAddress, balance: balanceDecimal, ethBalance: ethBalanceDecimal });
   } catch (err) {
     next(err);
