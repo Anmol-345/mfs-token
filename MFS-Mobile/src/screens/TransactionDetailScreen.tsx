@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { colors, spacing, borderRadius, typography } from '../theme';
 import type { Transaction } from '../types';
@@ -47,8 +47,12 @@ export default function TransactionDetailScreen({ route }: any) {
       </View>
 
       {tx.txHash ? (
-        <TouchableOpacity style={styles.etherscanBtn}>
-          <Text style={styles.etherscanText}>View on Etherscan</Text>
+        <TouchableOpacity 
+          style={styles.etherscanBtn} 
+          onPress={() => Linking.openURL(`https://sepolia.basescan.org/tx/${tx.txHash}`)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.etherscanText}>View on Basescan</Text>
         </TouchableOpacity>
       ) : null}
     </ScrollView>

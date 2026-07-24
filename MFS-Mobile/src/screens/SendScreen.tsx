@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { colors, spacing, borderRadius, typography } from '../theme';
@@ -13,8 +13,22 @@ export default function SendScreen({ navigation, route }: any) {
   const [toAddress, setToAddress] = useState(route.params?.scannedAddress || '');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const showToast = useUIStore((s) => s.showToast);
   const biometricEnabled = useAuthStore((s) => s.biometricEnabled);
+
+  // Countdown timer for cooldown
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const t = setInterval(() => {
+      setCooldownSeconds((s) => {
+        if (s <= 1) { clearInterval(t); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cooldownSeconds > 0]);
 
   useEffect(() => {
     if (route.params?.scannedAddress) {
@@ -27,6 +41,7 @@ export default function SendScreen({ navigation, route }: any) {
   const total = numericAmount + fee;
 
   const handleInitiate = async () => {
+    if (cooldownSeconds > 0) return;
     if (!toAddress || !amount) { showToast('Fill in all fields', 'error'); return; }
     if (!toAddress.match(/^0x[a-fA-F0-9]{40}$/) && !toAddress.endsWith('.eth')) { showToast('Invalid address', 'error'); return; }
 
@@ -41,13 +56,22 @@ export default function SendScreen({ navigation, route }: any) {
       }
     }
 
+    setIsLoading(true);
     try {
       const res = await walletService.initiateSend({
         toAddress, amount: numericAmount, memo: memo || undefined,
       });
       navigation.navigate('SendOTP', { toAddress, amount: numericAmount, memo, message: res.message });
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Send failed', 'error');
+      const data = err.response?.data;
+      if (data?.remaining) {
+        setCooldownSeconds(data.remaining);
+        showToast(`OTP already sent. Wait ${data.remaining}s before requesting again.`, 'error');
+      } else {
+        showToast(data?.error || 'Send failed', 'error');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -138,8 +162,19 @@ export default function SendScreen({ navigation, route }: any) {
             </View>
 
             {/* Actions */}
-            <TouchableOpacity style={styles.button} onPress={handleInitiate} activeOpacity={0.8}>
-              <Text style={styles.buttonText}>INITIATE TRANSFER</Text>
+            <TouchableOpacity 
+              style={[styles.button, (isLoading || cooldownSeconds > 0) && styles.buttonDisabled]} 
+              onPress={handleInitiate} 
+              activeOpacity={0.8}
+              disabled={isLoading || cooldownSeconds > 0}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.bg} size="small" />
+              ) : cooldownSeconds > 0 ? (
+                <Text style={styles.buttonText}>WAIT {cooldownSeconds}s</Text>
+              ) : (
+                <Text style={styles.buttonText}>INITIATE TRANSFER</Text>
+              )}
             </TouchableOpacity>
 
             {/* Aesthetic Filler Card */}
@@ -263,6 +298,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     marginTop: spacing.sm,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: { ...typography.h3, fontSize: 16, color: colors.bg, fontWeight: '800', letterSpacing: 2 },
   

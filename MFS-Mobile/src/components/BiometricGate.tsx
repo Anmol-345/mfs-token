@@ -90,6 +90,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     ...typography.button,
-    color: colors.white,
+    color: colors.black,
   },
 });

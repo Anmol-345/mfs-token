@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../theme';
+import Skeleton from './Skeleton';
 
 interface BalanceCardProps {
   balance: string;
@@ -8,8 +9,21 @@ interface BalanceCardProps {
 }
 
 export default function BalanceCard({ balance, ethBalance }: BalanceCardProps) {
+  const isLoading = !balance || balance === '0.00000000';
   const numericValue = parseFloat(balance) || 0;
   const formatted = numericValue.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 });
+
+  if (isLoading) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.contentGroup}>
+          <Skeleton width={100} height={10} style={{ marginBottom: 12 }} />
+          <Skeleton width={'80%'} height={44} style={{ marginBottom: 8 }} />
+          <Skeleton width={140} height={10} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -22,7 +36,7 @@ export default function BalanceCard({ balance, ethBalance }: BalanceCardProps) {
         {ethBalance !== undefined && (
           <View style={styles.subBalanceRow}>
             <Text style={styles.subBalanceLabel}>TESTNET GAS:</Text>
-            <Text style={styles.subBalance}>{ethBalance} ETH</Text>
+            <Text style={styles.subBalance}>{parseFloat(ethBalance || '0').toFixed(6)} ETH</Text>
           </View>
         )}
       </View>

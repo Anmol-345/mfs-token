@@ -5,9 +5,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
 import { useNotificationStore } from '../stores/notificationStore';
 import { notificationService } from '../services/notificationService';
+import TopAppBar from '../components/TopAppBar';
 import type { Notification } from '../types';
 
-export default function NotificationsScreen() {
+export default function NotificationsScreen({ navigation }: any) {
   const notifications = useNotificationStore((s) => s.notifications);
   const setNotifications = useNotificationStore((s) => s.setNotifications);
   const markRead = useNotificationStore((s) => s.markRead);
@@ -41,6 +42,11 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
+      <TopAppBar 
+        title="NOTIFICATIONS" 
+        leftIcon="arrow-back" 
+        onLeftPress={() => navigation.goBack()} 
+      />
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}

@@ -5,9 +5,10 @@ import { colors, spacing, borderRadius } from '../theme';
 interface OTPInputProps {
   length?: number;
   onComplete: (code: string) => void;
+  disabled?: boolean;
 }
 
-export default function OTPInput({ length = 6, onComplete }: OTPInputProps) {
+export default function OTPInput({ length = 6, onComplete, disabled = false }: OTPInputProps) {
   const [code, setCode] = useState<string[]>(Array(length).fill(''));
   const refs = useRef<TextInput[]>([]);
 
@@ -42,13 +43,14 @@ export default function OTPInput({ length = 6, onComplete }: OTPInputProps) {
         <TextInput
           key={i}
           ref={(ref) => { refs.current[i] = ref as TextInput; }}
-          style={[styles.input, code[i] ? styles.inputFilled : null]}
+          style={[styles.input, code[i] ? styles.inputFilled : null, disabled ? styles.inputDisabled : null]}
           value={code[i]}
           onChangeText={(t) => handleChange(t, i)}
           onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, i)}
           keyboardType="number-pad"
           maxLength={1}
           selectTextOnFocus
+          editable={!disabled}
         />
       ))}
     </View>
@@ -71,5 +73,8 @@ const styles = StyleSheet.create({
   },
   inputFilled: {
     borderColor: colors.white,
+  },
+  inputDisabled: {
+    opacity: 0.4,
   },
 });

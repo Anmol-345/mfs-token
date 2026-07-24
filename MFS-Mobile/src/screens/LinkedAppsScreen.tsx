@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { colors, spacing, borderRadius, typography } from '../theme';
+import TopAppBar from '../components/TopAppBar';
 import type { IntegratedApp } from '../types';
 
-export default function LinkedAppsScreen() {
+export default function LinkedAppsScreen({ navigation }: any) {
   const [apps, setApps] = useState<IntegratedApp[]>([]);
 
   useEffect(() => {
@@ -17,6 +18,11 @@ export default function LinkedAppsScreen() {
 
   return (
     <View style={styles.container}>
+      <TopAppBar 
+        title="LINKED APPS" 
+        leftIcon="arrow-back" 
+        onLeftPress={() => navigation.goBack()} 
+      />
       <FlatList
         data={apps}
         keyExtractor={(item) => item.id}

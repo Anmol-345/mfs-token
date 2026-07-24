@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../theme';
 import TransactionItem from '../components/TransactionItem';
 import TopAppBar from '../components/TopAppBar';
+import Skeleton from '../components/Skeleton';
 import { walletService } from '../services/walletService';
 import type { Transaction } from '../types';
 
@@ -60,7 +61,20 @@ export default function TransactionHistoryScreen({ navigation }: any) {
         {renderFilterTab('SENT')}
       </View>
 
-      <FlatList
+      {loading && txs.length === 0 ? (
+        <View style={{ padding: spacing.lg, gap: spacing.md }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <Skeleton width={40} height={40} borderRadius={20} />
+              <View style={{ flex: 1, gap: 8 }}>
+                <Skeleton width={'60%'} height={12} />
+                <Skeleton width={'40%'} height={10} />
+              </View>
+              <Skeleton width={80} height={14} />
+            </View>
+          ))}
+        </View>
+      ) : (<FlatList
         data={filteredTxs}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TransactionItem transaction={item} onPress={() => navigation.navigate('TransactionDetail', { transaction: item })} />}
@@ -76,7 +90,7 @@ export default function TransactionHistoryScreen({ navigation }: any) {
             </View>
           ) : null
         }
-      />
+      />)}
     </View>
   );
 }

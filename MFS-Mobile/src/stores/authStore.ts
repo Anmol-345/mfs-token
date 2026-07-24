@@ -47,13 +47,13 @@ export const useAuthStore = create<AuthState>()(
       setBiometric: (biometricEnabled) => set({ biometricEnabled }),
       setOnboardingComplete: () => set({ onboardingComplete: true }),
       logout: () =>
-        set({
+        set((state) => ({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
-          biometricEnabled: false,
-        }),
+          // We don't reset biometricEnabled so the preference persists for the device
+        })),
     }),
     {
       name: 'mfs-auth',
