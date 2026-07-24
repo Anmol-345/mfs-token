@@ -14,8 +14,10 @@ async function sendEmail({ to, subject, html }) {
   });
 
   if (error) {
-    logger.error('Resend email failed', { error });
-    throw new Error(error.message);
+    logger.error('Resend email failed', { error, to });
+    const err = new Error(`Email delivery failed: ${error.message || JSON.stringify(error)}`);
+    err.statusCode = 502;
+    throw err;
   }
 
   logger.info('Email sent', { to, subject });
