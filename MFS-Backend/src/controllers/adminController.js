@@ -143,6 +143,7 @@ exports.updateKyc = async (req, res, next) => {
 
     if (wasUnverified && (status === 'basic' || status === 'advanced') && user.referredBy) {
       const { Referral, Wallet, Transaction } = require('../models');
+      const { env } = require('../config/env');
       const referral = await Referral.findOne({ where: { referredId: user.id } });
       
       if (referral && parseFloat(referral.rewardEarned) === 0) {
@@ -150,16 +151,37 @@ exports.updateKyc = async (req, res, next) => {
         if (referrerUser && referrerUser.mfsAddress) {
           const web3 = getWeb3();
           const contract = await getContract();
-          const accounts = await web3.eth.getAccounts();
-          const adminAccount = accounts[0]; // Main wallet
           
           const mfsAmount = '50';
           const mfsWei = mfsAmount + '00000000'; // 50 MFS with 8 decimals
 
           try {
-            const txObj = contract.methods.transfer(referrerUser.mfsAddress, mfsWei);
-            const gas = await txObj.estimateGas({ from: adminAccount });
-            const receipt = await txObj.send({ from: adminAccount, gas: BigInt(gas) + 10000n });
+            let txHash;
+            let fromAddress;
+            const txMethod = contract.methods.transfer(referrerUser.mfsAddress, mfsWei);
+            
+            if (env.blockchain.adminPrivateKey) {
+              const adminAccount = web3.eth.accounts.privateKeyToAccount(env.blockchain.adminPrivateKey);
+              fromAddress = adminAccount.address;
+              const gas = await txMethod.estimateGas({ from: fromAddress });
+              const gasPrice = await web3.eth.getGasPrice();
+              const txObj = {
+                from: fromAddress,
+                to: contract.options.address,
+                data: txMethod.encodeABI(),
+                gas: (BigInt(gas) + 10000n).toString(),
+                gasPrice: gasPrice.toString()
+              };
+              const signedTx = await web3.eth.accounts.signTransaction(txObj, env.blockchain.adminPrivateKey);
+              const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+              txHash = receipt.transactionHash;
+            } else {
+              const accounts = await web3.eth.getAccounts();
+              fromAddress = accounts[0]; // Fallback for local testing
+              const gas = await txMethod.estimateGas({ from: fromAddress });
+              const receipt = await txMethod.send({ from: fromAddress, gas: BigInt(gas) + 10000n });
+              txHash = receipt.transactionHash;
+            }
 
             referral.rewardEarned = 50;
             await referral.save();
@@ -171,10 +193,9 @@ exports.updateKyc = async (req, res, next) => {
               amount: '50',
               fee: '0',
               netAmount: '50',
-              fromAddress: adminAccount,
+              fromAddress: fromAddress,
               toAddress: referrerUser.mfsAddress,
-              txHash: receipt.transactionHash,
-              blockNumber: Number(receipt.blockNumber),
+              txHash: txHash,
               memo: 'Referral Reward',
             });
           } catch (e) {
