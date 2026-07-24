@@ -1,0 +1,55 @@
+require('dotenv').config();
+const { MNEMONIC, PROJECT_ID, DEPLOYER_PRIVATE_KEY } = process.env;
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+
+module.exports = {
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*",
+    },
+    sepolia: {
+      provider: () => new HDWalletProvider({
+        mnemonic: MNEMONIC,
+        providerOrUrl: `https://sepolia.infura.io/v3/${PROJECT_ID}`,
+      }),
+      network_id: 11155111,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: false,
+    },
+    base_sepolia: {
+      provider: () => new HDWalletProvider({
+        privateKeys: [DEPLOYER_PRIVATE_KEY],
+        providerOrUrl: 'https://sepolia.base.org',
+      }),
+      network_id: 84532,
+      confirmations: 1,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+    },
+  },
+
+  mocha: {
+    timeout: 100000,
+  },
+
+  compilers: {
+    solc: {
+      version: "0.8.21",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        },
+      },
+    },
+  },
+
+  plugins: ["truffle-plugin-verify"],
+
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY,
+  },
+};

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "MFS Crypto",
+    "slug": "mfs-crypto",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0A0A0F",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mfscrypto.wallet",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is used to scan QR codes for wallet addresses.",
+        "NSFaceIDUsageDescription": "Face ID is used to unlock your wallet and authorize transactions."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mfscrypto.wallet",
+      "permissions": ["CAMERA", "USE_BIOMETRIC"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-camera",
+      "expo-local-authentication"
+    ],
+    "extra": {
+      "API_URL": "http://localhost:3000/api"
+    }
+  }
+}

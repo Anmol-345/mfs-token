@@ -1,0 +1,19 @@
+[Unit]
+Description=MFS Crypto — GETH Sepolia Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=geth_user
+Group=geth_group
+UMask=0007
+Type=simple
+ExecStart=/opt/mfs/geth_start.sh
+Restart=on-failure
+RestartSec=10s
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
